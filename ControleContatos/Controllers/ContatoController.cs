@@ -1,6 +1,8 @@
 ﻿using ControleContatos.Models;
 using ControleContatos.Repositorio;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR.Protocol;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ControleContatos.Controllers
 {
@@ -38,32 +40,67 @@ namespace ControleContatos.Controllers
 
     public IActionResult Apagar(int id)
     {
-      _contatoRepositorio.Apagar(id);
-      return RedirectToAction("Index");
+      try
+      {
+        bool apagado = _contatoRepositorio.Apagar(id);
+
+        if (apagado)
+        {
+          TempData["MensagemSucesso"] = "Cadastro excluído com sucesso";
+        }
+        else
+        {
+          TempData["MensagemErro"] = $"Erro ao excluir, tente novamente";
+        }
+        return RedirectToAction("Index");
+      }
+      catch (Exception erro)
+      {
+        TempData["MensagemErro"] = $"Erro ao excluir, tente novamente - {erro.Message}";
+        return RedirectToAction("Index");
+      }
     }
 
     [HttpPost]
     public IActionResult Criar(ContatoModel contato)
     {
-      if (ModelState.IsValid)
+      try
       {
-        _contatoRepositorio.Adicionar(contato);
+        if (ModelState.IsValid)
+        {
+          _contatoRepositorio.Adicionar(contato);
+          TempData["MensagemSucesso"] = "Cadastro concluído com sucesso";
+          return RedirectToAction("Index");
+        }
+
+        return View(contato);
+      }
+      catch (Exception erro) 
+      {
+        TempData["MensagemErro"] = $"Erro ao cadastrar, tente novamente - {erro.Message}";
         return RedirectToAction("Index");
       }
-
-      return View(contato);
     }
 
     [HttpPost]
     public IActionResult Editar(ContatoModel contato)
     {
-      if (ModelState.IsValid)
+      try
       {
-        _contatoRepositorio.Editar(contato);
+        if (ModelState.IsValid)
+        {
+          _contatoRepositorio.Editar(contato);
+          TempData["MensagemSucesso"] = "Cadastro alterado com sucesso";
+          return RedirectToAction("Index");
+        }
+
+        return View(contato);
+      }
+      catch (Exception erro)
+      {
+        TempData["MensagemErro"] = $"Erro ao editar, tente novamente - {erro.Message}";
         return RedirectToAction("Index");
       }
-
-      return View(contato);
     }
   }
 }
